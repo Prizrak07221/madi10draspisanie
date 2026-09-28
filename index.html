@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расписание 10 «Д» класса</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 4px;
+        }
+        .glass-card {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300 pb-12">
+
+    <header class="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 glass-card border-b border-slate-200 dark:border-slate-800 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <!-- Логотип / Заголовок -->
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-blue-600 to-indigo-500 text-white p-2.5 rounded-xl shadow-lg shadow-blue-500/20">
+                    <i class="fa-solid font-bold text-xl">10Д</i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                        Расписание <span class="text-blue-600 dark:text-blue-400">10 «Д»</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Уроки по 40 минут</p>
+                </div>
+            </div>
+
+            <!-- Действия -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button id="todayBtn" onclick="selectToday()" class="px-3 py-1.5 text-xs sm:text-sm font-medium bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-lg transition border border-blue-200 dark:border-blue-800 flex items-center gap-1.5">
+                    <i class="fa-solid fa-calendar-day"></i>
+                    <span>Сегодня</span>
+                </button>
+
+                <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition" title="Сменить тему">
+                    <i class="fa-solid fa-sun text-lg hidden dark:block text-amber-400"></i>
+                    <i class="fa-solid fa-moon text-lg block dark:hidden text-indigo-600"></i>
+                </button>
+
+                <button onclick="openEditModal()" class="px-3 py-1.5 text-xs sm:text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-md transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i>
+                    <span class="hidden md:inline">Урок</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+
+        <div id="statusBanner" class="mb-6 p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-sm transition-all relative overflow-hidden">
+            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-500/10 rounded-full blur-xl pointer-events-none"></div>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-start sm:items-center space-x-3 sm:space-x-4">
+                    <div id="statusBadgeIcon" class="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 mt-1 sm:mt-0">
+                        <i class="fa-solid fa-clock text-xl sm:text-2xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span id="statusBadgeText" class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300">
+                                Загрузка...
+                            </span>
+                            <span id="currentTime" class="text-xs text-slate-500 dark:text-slate-400 font-mono">00:00:00</span>
+                        </div>
+                        <h2 id="statusTitle" class="text-base sm:text-lg font-bold mt-0.5 text-slate-800 dark:text-slate-100">
+                            Определяем текущий урок...
+                        </h2>
+                        <p id="statusSubtitle" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                            Загрузка расписания
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Таймер обратного отсчета -->
+                <div id="timerContainer" class="hidden sm:flex flex-col items-end justify-center border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-700/50 pt-3 md:pt-0 md:pl-6">
+                    <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Осталось</span>
+                    <span id="countdownTimer" class="text-xl sm:text-2xl font-black font-mono text-blue-600 dark:text-blue-400">--:--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <!-- Дни недели -->
+            <div class="flex items-center space-x-1 sm:space-x-2 overflow-x-auto pb-2 md:pb-0 custom-scrollbar">
+                <button onclick="changeDay(1)" data-day="1" class="day-tab px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl transition whitespace-nowrap">Пн</button>
+                <button onclick="changeDay(2)" data-day="2" class="day-tab px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl transition whitespace-nowrap">Вт</button>
+                <button onclick="changeDay(3)" data-day="3" class="day-tab px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl transition whitespace-nowrap">Ср</button>
+                <button onclick="changeDay(4)" data-day="4" class="day-tab px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl transition whitespace-nowrap">Чт</button>
+                <button onclick="changeDay(5)" data-day="5" class="day-tab px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl transition whitespace-nowrap">Пт</button>
+                <button onclick="changeDay(6)" data-day="6" class="day-tab px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl transition whitespace-nowrap">Сб</button>
+            </div>
+
+            <!-- Поиск и Фильтр -->
+            <div class="flex items-center space-x-2">
+                <div class="relative flex-1 sm:w-64">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Поиск предмета или учителя..." 
+                           class="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                </div>
+                <button onclick="resetData()" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition" title="Сбросить к сетке звонков по 40 мин">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="lessonsList" class="space-y-3">
+            <!-- Динамически заполняется через JS -->
+        </div>
+
+        <!-- Заглушка при отсутствии уроков -->
+        <div id="emptyState" class="hidden flex-col items-center justify-center py-12 text-center bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/60">
+            <div class="w-16 h-16 bg-slate-100 dark:bg-slate-700/50 text-slate-400 rounded-full flex items-center justify-center mb-3">
+                <i class="fa-solid fa-mug-hot text-2xl"></i>
+            </div>
+            <h3 class="text-base font-semibold text-slate-700 dark:text-slate-200">Уроков нет</h3>
+            <p class="text-xs sm:text-sm text-slate-400 max-w-sm mt-1">Отдыхайте! На выбранный день или по вашему запросу уроки не найдены.</p>
+        </div>
+
+    </main>
+
+    <div id="editModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 transition-all transform scale-100">
+            <div class="flex items-center justify-between mb-5">
+                <h3 id="modalTitle" class="text-lg font-bold text-slate-900 dark:text-white">Добавить урок</h3>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="lessonForm" onsubmit="saveLesson(event)" class="space-y-4">
+                <input type="hidden" id="modalLessonId">
+                
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">День недели</label>
+                    <select id="modalDay" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="1">Понедельник</option>
+                        <option value="2">Вторник</option>
+                        <option value="3">Среда</option>
+                        <option value="4">Четверг</option>
+                        <option value="5">Пятница</option>
+                        <option value="6">Суббота</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">№ урока</label>
+                        <input type="number" id="modalNum" min="1" max="10" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Начало</label>
+                        <input type="time" id="modalStartTime" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Конец</label>
+                        <input type="time" id="modalEndTime" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Предмет</label>
+                    <input type="text" id="modalSubject" required placeholder="Напр. Информатика" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Кабинет</label>
+                        <input type="text" id="modalRoom" placeholder="105" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Учитель</label>
+                        <input type="text" id="modalTeacher" placeholder="Иванова И.И." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Домашнее задание</label>
+                    <textarea id="modalHomework" rows="2" placeholder="Параграф 12, упр. 4..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-3">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition">
+                        Отмена
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md transition">
+                        Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Обновленное расписание 10 "Д" с уроками по 40 минут
+        const defaultSchedule = [
+            // Понедельник (2 инф, 2 англ, 2 ист, обед, 2 проф)
+            { id: '1-1', day: 1, num: 1, startTime: '08:30', endTime: '09:10', subject: 'Информатика', room: '105', teacher: 'Морозов Д.С.', homework: 'Лабораторная работа №1' },
+            { id: '1-2', day: 1, num: 2, startTime: '09:20', endTime: '10:00', subject: 'Информатика', room: '105', teacher: 'Морозов Д.С.', homework: 'Написать алгоритм на Python' },
+            { id: '1-3', day: 1, num: 3, startTime: '10:15', endTime: '10:55', subject: 'Иностранный язык (Англ)', room: '208', teacher: 'Браун Э.С.', homework: 'Student Book p. 42' },
+            { id: '1-4', day: 1, num: 4, startTime: '11:10', endTime: '11:50', subject: 'Иностранный язык (Англ)', room: '208', teacher: 'Браун Э.С.', homework: 'Workbook p. 25 ex. 1-4' },
+            { id: '1-5', day: 1, num: 5, startTime: '12:05', endTime: '12:45', subject: 'История', room: '310', teacher: 'Кузнецов А.А.', homework: 'Параграф 14, вопросы' },
+            { id: '1-6', day: 1, num: 6, startTime: '12:55', endTime: '13:35', subject: 'История', room: '310', teacher: 'Кузнецов А.А.', homework: 'Подготовить доклад по теме' },
+            // Перерыв на обед (13:35 - 14:05)
+            { id: '1-7', day: 1, num: 7, startTime: '14:05', endTime: '14:45', subject: 'Профильный предмет', room: '302', teacher: 'Смирнова Е.В.', homework: 'Задания из сборника №1-5' },
+            { id: '1-8', day: 1, num: 8, startTime: '14:55', endTime: '15:35', subject: 'Профильный предмет', room: '302', teacher: 'Смирнова Е.В.', homework: 'Подготовиться к тесту' },
+
+            // Вторник (40-мин интервалы)
+            { id: '2-1', day: 2, num: 1, startTime: '08:30', endTime: '09:10', subject: 'Алгебра', room: '302', teacher: 'Смирнова Е.В.', homework: '№ 120, 122' },
+            { id: '2-2', day: 2, num: 2, startTime: '09:20', endTime: '10:00', subject: 'Физика', room: '215', teacher: 'Петров И.Н.', homework: '§12, задачи 1-3' },
+            { id: '2-3', day: 2, num: 3, startTime: '10:15', endTime: '10:55', subject: 'Русский язык', room: '401', teacher: 'Васильева О.М.', homework: 'Упр. 180' },
+            { id: '2-4', day: 2, num: 4, startTime: '11:10', endTime: '11:50', subject: 'Литература', room: '401', teacher: 'Васильева О.М.', homework: 'Читать гл. 3-4' },
+            { id: '2-5', day: 2, num: 5, startTime: '12:05', endTime: '12:45', subject: 'Химия', room: '218', teacher: 'Соколова Т.А.', homework: 'Конспект §8' },
+            { id: '2-6', day: 2, num: 6, startTime: '12:55', endTime: '13:35', subject: 'Обществознание', room: '310', teacher: 'Кузнецов А.А.', homework: 'Эссе по теме' },
+
+            // Среда (40-мин интервалы)
+            { id: '3-1', day: 3, num: 1, startTime: '08:30', endTime: '09:10', subject: 'Геометрия', room: '302', teacher: 'Смирнова Е.В.', homework: '№ 45, 48' },
+            { id: '3-2', day: 3, num: 2, startTime: '09:20', endTime: '10:00', subject: 'Биология', room: '220', teacher: 'Николаева Н.С.', homework: 'Таблица с. 54' },
+            { id: '3-3', day: 3, num: 3, startTime: '10:15', endTime: '10:55', subject: 'Физика', room: '215', teacher: 'Петров И.Н.', homework: 'Подготовка к к/р' },
+            { id: '3-4', day: 3, num: 4, startTime: '11:10', endTime: '11:50', subject: 'Иностранный язык', room: '208', teacher: 'Браун Э.С.', homework: 'Учить слова' },
+            { id: '3-5', day: 3, num: 5, startTime: '12:05', endTime: '12:45', subject: 'География', room: '305', teacher: 'Попова Е.Д.', homework: 'Контурная карта' },
+            { id: '3-6', day: 3, num: 6, startTime: '12:55', endTime: '13:35', subject: 'Физкультура', room: 'Спортзал', teacher: 'Сидоров С.П.', homework: 'Форма' },
+
+            // Четверг (40-мин интервалы)
+            { id: '4-1', day: 4, num: 1, startTime: '08:30', endTime: '09:10', subject: 'Литература', room: '401', teacher: 'Васильева О.М.', homework: 'Сочинение' },
+            { id: '4-2', day: 4, num: 2, startTime: '09:20', endTime: '10:00', subject: 'Алгебра', room: '302', teacher: 'Смирнова Е.В.', homework: '№ 130' },
+            { id: '4-3', day: 4, num: 3, startTime: '10:15', endTime: '10:55', subject: 'История', room: '310', teacher: 'Кузнецов А.А.', homework: 'Параграф 15' },
+            { id: '4-4', day: 4, num: 4, startTime: '11:10', endTime: '11:50', subject: 'Физкультура', room: 'Спортзал', teacher: 'Сидоров С.П.', homework: 'Кроссовки' },
+            { id: '4-5', day: 4, num: 5, startTime: '12:05', endTime: '12:45', subject: 'ОБЖ', room: '112', teacher: 'Громов В.В.', homework: 'Презентация' },
+
+            // Пятница (40-мин интервалы)
+            { id: '5-1', day: 5, num: 1, startTime: '08:30', endTime: '09:10', subject: 'Алгебра', room: '302', teacher: 'Смирнова Е.В.', homework: 'Вариант 4' },
+            { id: '5-2', day: 5, num: 2, startTime: '09:20', endTime: '10:00', subject: 'Русский язык', room: '401', teacher: 'Васильева О.М.', homework: 'Правило стр. 98' },
+            { id: '5-3', day: 5, num: 3, startTime: '10:15', endTime: '10:55', subject: 'Химия', room: '218', teacher: 'Соколова Т.А.', homework: 'Решить задачи' },
+            { id: '5-4', day: 5, num: 4, startTime: '11:10', endTime: '11:50', subject: 'Информатика', room: '105', teacher: 'Морозов Д.С.', homework: 'Практическая' },
+            { id: '5-5', day: 5, num: 5, startTime: '12:05', endTime: '12:45', subject: 'Классный час', room: '302', teacher: 'Смирнова Е.В.', homework: '—' },
+
+            // Суббота (40-мин интервалы)
+            { id: '6-1', day: 6, num: 1, startTime: '09:00', endTime: '09:40', subject: 'Электив: Математика', room: '302', teacher: 'Смирнова Е.В.', homework: 'Решить профиль' },
+            { id: '6-2', day: 6, num: 2, startTime: '09:50', endTime: '10:30', subject: 'Электив: Физика', room: '215', teacher: 'Петров И.Н.', homework: 'Задачи повышенной сложности' }
+        ];
+
+        let schedule = [];
+        let selectedDay = 1;
+        let searchQuery = '';
+
+        window.onload = function() {
+            loadTheme();
+            loadSchedule();
+            initCurrentDay();
+            renderDaysTabs();
+            renderSchedule();
+            updateLiveStatus();
+            setInterval(updateLiveStatus, 1000);
+        };
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme_10d');
+            if (savedTheme === 'light') {
+                document.documentElement.classList.remove('dark');
+            } else {
+                document.documentElement.classList.add('dark');
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme_10d', isDark ? 'dark' : 'light');
+        }
+
+        function loadSchedule() {
+            const saved = localStorage.getItem('schedule_10d_v2');
+            if (saved) {
+                try {
+                    schedule = JSON.parse(saved);
+                } catch (e) {
+                    schedule = [...defaultSchedule];
+                }
+            } else {
+                schedule = [...defaultSchedule];
+            }
+        }
+
+        function saveScheduleToStorage() {
+            localStorage.setItem('schedule_10d_v2', JSON.stringify(schedule));
+        }
+
+        function resetData() {
+            if (confirm('Вы уверены, что хотите сбросить расписание к обновленной 40-минутной сетке? Все пользовательские изменения будут сброшены.')) {
+                schedule = [...defaultSchedule];
+                saveScheduleToStorage();
+                renderSchedule();
+                updateLiveStatus();
+            }
+        }
+
+        function initCurrentDay() {
+            const day = new Date().getDay();
+            selectedDay = (day === 0) ? 1 : day;
+        }
+
+        function selectToday() {
+            initCurrentDay();
+            renderDaysTabs();
+            renderSchedule();
+        }
+
+        function changeDay(day) {
+            selectedDay = day;
+            renderDaysTabs();
+            renderSchedule();
+        }
+
+        function renderDaysTabs() {
+            document.querySelectorAll('.day-tab').forEach(tab => {
+                const dayNum = parseInt(tab.getAttribute('data-day'));
+                if (dayNum === selectedDay) {
+                    tab.className = "day-tab px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl transition whitespace-nowrap bg-blue-600 text-white shadow-md shadow-blue-500/20";
+                } else {
+                    tab.className = "day-tab px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl transition whitespace-nowrap bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700/60";
+                }
+            });
+        }
+
+        function renderSchedule() {
+            const listEl = document.getElementById('lessonsList');
+            const emptyEl = document.getElementById('emptyState');
+            listEl.innerHTML = '';
+
+            let filtered = schedule.filter(item => item.day === selectedDay);
+
+            if (searchQuery.trim() !== '') {
+                const q = searchQuery.toLowerCase();
+                filtered = filtered.filter(item => 
+                    item.subject.toLowerCase().includes(q) || 
+                    item.teacher.toLowerCase().includes(q) ||
+                    item.room.toLowerCase().includes(q)
+                );
+            }
+
+            filtered.sort((a, b) => a.num - b.num);
+
+            if (filtered.length === 0) {
+                emptyEl.classList.remove('hidden');
+                emptyEl.classList.add('flex');
+            } else {
+                emptyEl.classList.add('hidden');
+                emptyEl.classList.remove('flex');
+
+                const now = new Date();
+                const curDay = now.getDay();
+                const curTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+                filtered.forEach(lesson => {
+                    const isActive = (curDay === lesson.day) && (curTimeStr >= lesson.startTime && curTimeStr <= lesson.endTime);
+                    
+                    const card = document.createElement('div');
+                    card.className = `group relative bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border transition-all duration-200 hover:shadow-lg ${
+                        isActive 
+                            ? 'border-blue-500 dark:border-blue-500 ring-2 ring-blue-500/20 shadow-blue-500/10' 
+                            : 'border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
+                    }`;
+
+                    card.innerHTML = `
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="flex items-start space-x-3 sm:space-x-4">
+                                <div class="flex flex-col items-center justify-center min-w-[48px] h-12 bg-slate-100 dark:bg-slate-700/60 rounded-xl font-bold text-slate-700 dark:text-slate-200">
+                                    <span class="text-xs text-slate-400 font-normal">Урок</span>
+                                    <span class="text-base leading-none">${lesson.num}</span>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                            ${escapeHtml(lesson.subject)}
+                                        </h3>
+                                        ${isActive ? '<span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-500 text-white rounded-full animate-pulse">ИДЕТ УРОК</span>' : ''}
+                                    </div>
+                                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                        <span class="flex items-center gap-1 font-mono text-slate-600 dark:text-slate-300">
+                                            <i class="fa-regular fa-clock text-blue-500"></i> ${lesson.startTime} – ${lesson.endTime} (40 мин)
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i class="fa-solid fa-door-open text-amber-500"></i> Каб. ${escapeHtml(lesson.room || '—')}
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i class="fa-solid fa-user-tie text-indigo-500"></i> ${escapeHtml(lesson.teacher || '—')}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-end space-x-1 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 dark:border-slate-700/50">
+                                <button onclick="openEditModal('${lesson.id}')" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition" title="Редактировать">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button onclick="deleteLesson('${lesson.id}')" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition" title="Удалить">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        ${lesson.homework ? `
+                            <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/50 flex items-start gap-2 text-xs">
+                                <span class="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 font-semibold shrink-0">Д/З</span>
+                                <p class="text-slate-600 dark:text-slate-300 italic pt-0.5">${escapeHtml(lesson.homework)}</p>
+                            </div>
+                        ` : ''}
+                    `;
+
+                    listEl.appendChild(card);
+                });
+            }
+        }
+
+        function handleSearch() {
+            searchQuery = document.getElementById('searchInput').value;
+            renderSchedule();
+        }
+
+        function updateLiveStatus() {
+            const now = new Date();
+            const curDay = now.getDay();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            const secs = String(now.getSeconds()).padStart(2, '0');
+            
+            document.getElementById('currentTime').innerText = `${hours}:${mins}:${secs}`;
+
+            const badge = document.getElementById('statusBadgeText');
+            const title = document.getElementById('statusTitle');
+            const subtitle = document.getElementById('statusSubtitle');
+            const timerContainer = document.getElementById('timerContainer');
+            const countdown = document.getElementById('countdownTimer');
+
+            if (curDay === 0) {
+                badge.className = "px-2.5 py-0.5 text-xs font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-300";
+                badge.innerText = "Выходной";
+                title.innerText = "Сегодня воскресенье — уроков нет!";
+                subtitle.innerText = "Отдыхайте и набирайтесь сил перед новой учебной неделей.";
+                timerContainer.classList.add('hidden');
+                return;
+            }
+
+            const todayLessons = schedule.filter(l => l.day === curDay).sort((a,b) => a.num - b.num);
+
+            if (todayLessons.length === 0) {
+                badge.className = "px-2.5 py-0.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300";
+                badge.innerText = "Нет занятий";
+                title.innerText = "На сегодня уроков не запланировано";
+                subtitle.innerText = "Отличное время для саморазвития!";
+                timerContainer.classList.add('hidden');
+                return;
+            }
+
+            const nowMins = now.getHours() * 60 + now.getMinutes();
+            const nowSecs = nowMins * 60 + now.getSeconds();
+
+            let activeLesson = null;
+            let nextLesson = null;
+
+            for (let i = 0; i < todayLessons.length; i++) {
+                const l = todayLessons[i];
+                const startMins = timeToMins(l.startTime);
+                const endMins = timeToMins(l.endTime);
+
+                if (nowMins >= startMins && nowMins < endMins) {
+                    activeLesson = l;
+                    break;
+                } else if (nowMins < startMins) {
+                    nextLesson = l;
+                    break;
+                }
+            }
+
+            const firstStart = timeToMins(todayLessons[0].startTime);
+            const lastEnd = timeToMins(todayLessons[todayLessons.length - 1].endTime);
+
+            if (activeLesson) {
+                const endSecs = timeToMins(activeLesson.endTime) * 60;
+                const diff = endSecs - nowSecs;
+
+                badge.className = "px-2.5 py-0.5 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300 animate-pulse";
+                badge.innerText = "Идет урок (40 мин)";
+                title.innerText = `Сейчас: ${activeLesson.subject} (Урок №${activeLesson.num})`;
+                subtitle.innerText = `Кабинет: ${activeLesson.room || '—'} | Учитель: ${activeLesson.teacher || '—'}`;
+                
+                timerContainer.classList.remove('hidden');
+                countdown.innerText = formatTimeDiff(diff);
+                countdown.className = "text-xl sm:text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400";
+
+            } else if (nowMins < firstStart) {
+                const startSecs = firstStart * 60;
+                const diff = startSecs - nowSecs;
+
+                badge.className = "px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300";
+                badge.innerText = "Скоро начало";
+                title.innerText = `Первый урок: ${todayLessons[0].subject}`;
+                subtitle.innerText = `Начало в ${todayLessons[0].startTime} в каб. ${todayLessons[0].room || '—'}`;
+
+                timerContainer.classList.remove('hidden');
+                countdown.innerText = formatTimeDiff(diff);
+                countdown.className = "text-xl sm:text-2xl font-black font-mono text-blue-600 dark:text-blue-400";
+
+            } else if (nowMins >= lastEnd) {
+                badge.className = "px-2.5 py-0.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300";
+                badge.innerText = "Занятия окончены";
+                title.innerText = "Уроки на сегодня завершены!";
+                subtitle.innerText = "Хорошего отдыха!";
+                timerContainer.classList.add('hidden');
+
+            } else if (nextLesson) {
+                const nextStartSecs = timeToMins(nextLesson.startTime) * 60;
+                const diff = nextStartSecs - nowSecs;
+
+                const isLunch = (nextLesson.num === 7 && nowMins >= timeToMins("13:35") && nowMins < timeToMins("14:05"));
+
+                badge.className = "px-2.5 py-0.5 text-xs font-semibold rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300";
+                badge.innerText = isLunch ? "Обеденный перерыв" : "Перемена";
+                title.innerText = `${isLunch ? 'Обед! ' : ''}Следующий урок: ${nextLesson.subject} (№${nextLesson.num})`;
+                subtitle.innerText = `Кабинет: ${nextLesson.room || '—'} в ${nextLesson.startTime}`;
+
+                timerContainer.classList.remove('hidden');
+                countdown.innerText = formatTimeDiff(diff);
+                countdown.className = "text-xl sm:text-2xl font-black font-mono text-amber-600 dark:text-amber-400";
+            }
+        }
+
+        function timeToMins(timeStr) {
+            const [h, m] = timeStr.split(':').map(Number);
+            return h * 60 + m;
+        }
+
+        function formatTimeDiff(totalSeconds) {
+            if (totalSeconds < 0) return '00:00';
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function openEditModal(id = null) {
+            const modal = document.getElementById('editModal');
+            const title = document.getElementById('modalTitle');
+            const form = document.getElementById('lessonForm');
+
+            form.reset();
+            document.getElementById('modalLessonId').value = '';
+
+            if (id) {
+                const lesson = schedule.find(l => l.id === id);
+                if (lesson) {
+                    title.innerText = 'Редактировать урок';
+                    document.getElementById('modalLessonId').value = lesson.id;
+                    document.getElementById('modalDay').value = lesson.day;
+                    document.getElementById('modalNum').value = lesson.num;
+                    document.getElementById('modalStartTime').value = lesson.startTime;
+                    document.getElementById('modalEndTime').value = lesson.endTime;
+                    document.getElementById('modalSubject').value = lesson.subject;
+                    document.getElementById('modalRoom').value = lesson.room || '';
+                    document.getElementById('modalTeacher').value = lesson.teacher || '';
+                    document.getElementById('modalHomework').value = lesson.homework || '';
+                }
+            } else {
+                title.innerText = 'Добавить урок';
+                document.getElementById('modalDay').value = selectedDay;
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        function saveLesson(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('modalLessonId').value;
+            const day = parseInt(document.getElementById('modalDay').value);
+            const num = parseInt(document.getElementById('modalNum').value);
+            const startTime = document.getElementById('modalStartTime').value;
+            const endTime = document.getElementById('modalEndTime').value;
+            const subject = document.getElementById('modalSubject').value.trim();
+            const room = document.getElementById('modalRoom').value.trim();
+            const teacher = document.getElementById('modalTeacher').value.trim();
+            const homework = document.getElementById('modalHomework').value.trim();
+
+            if (id) {
+                const idx = schedule.findIndex(l => l.id === id);
+                if (idx !== -1) {
+                    schedule[idx] = { id, day, num, startTime, endTime, subject, room, teacher, homework };
+                }
+            } else {
+                const newId = 'lesson_' + Date.now();
+                schedule.push({ id: newId, day, num, startTime, endTime, subject, room, teacher, homework });
+            }
+
+            saveScheduleToStorage();
+            closeEditModal();
+            renderSchedule();
+            updateLiveStatus();
+        }
+
+        function deleteLesson(id) {
+            if (confirm('Вы действительно хотите удалить этот урок из расписания?')) {
+                schedule = schedule.filter(l => l.id !== id);
+                saveScheduleToStorage();
+                renderSchedule();
+                updateLiveStatus();
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"']/g, function(m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[m];
+            });
+        }
+    </script>
+</body>
+</html>
